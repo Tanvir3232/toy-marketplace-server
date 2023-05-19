@@ -44,6 +44,24 @@ async function run() {
       const result = await toyCollection.insertOne(newToy);
       res.send(result);
     })
+    app.patch('/toy/:id',async(req,res)=>{
+       const id = req.params.id;
+       const filter = {_id: new ObjectId(id)};
+       const updatedToy = req.body;
+       const updatedDoc = {
+        $set:{
+            name          : updatedToy.name,
+            category      : updatedToy.category,
+            price         : updatedToy.price,
+            rating        : updatedToy.rating,
+            quantity      : updatedToy.quantity,
+            photoUrl      : updatedToy.photoUrl,
+            description   : updatedToy.description
+        }
+       }
+       const result = await toyCollection.updateOne(filter,updatedDoc);
+       res.send(result);
+    })
     app.delete('/toy/:id',async(req,res)=>{
        const id = req.params.id;
        const query = {_id : new ObjectId(id)};
