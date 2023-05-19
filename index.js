@@ -26,7 +26,11 @@ async function run() {
     await client.connect();
     const toyCollection = client.db('toyDB').collection('toys');
     app.get('/toys',async(req,res)=>{
-       const result = await toyCollection.find().toArray();
+       let query = {};
+       if(req.query?.email){
+         query = {sellerEmail: req.query.email} 
+       }
+       const result = await toyCollection.find(query).toArray();
        res.send(result);
     })
     app.get("/toy/:id",async(req,res)=>{
