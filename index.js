@@ -36,7 +36,7 @@ async function run() {
        if(req.query?.name){
            query = {name: {$regex: req.query.name,$options:"i"}}
        }
-       const result = await toyCollection.find(query).toArray();
+       const result = await toyCollection.find(query).limit(20).toArray();
        res.send(result);
     })
     app.get("/toy/:id",async(req,res)=>{
