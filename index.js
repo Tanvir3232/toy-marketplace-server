@@ -30,6 +30,9 @@ async function run() {
        if(req.query?.email){
          query = {sellerEmail: req.query.email} 
        }
+       if(req.query?.category){
+           query = {category: req.query.category}
+       }
        const result = await toyCollection.find(query).toArray();
        res.send(result);
     })
