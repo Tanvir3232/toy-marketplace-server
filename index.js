@@ -1,9 +1,9 @@
 const express = require('express');
 require('dotenv').config()
-const cors    = require('cors');
+const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const app     = express();
-const port    = process.env.PORT || 5000;
+const app = express();
+const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
@@ -25,68 +25,78 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const toyCollection = client.db('toyDB').collection('toys');
-    app.get('/toys',async(req,res)=>{
-       let query = {};
-       if(req.query?.email){
-         query = {sellerEmail: req.query.email} 
-       }
-       if(req.query?.category){
-           query = {category: req.query.category}
-       }
-       if(req.query?.name){
-           query = {name: {$regex: req.query.name,$options:"i"}}
-       }
-       const result = await toyCollection.find(query).limit(20).toArray();
-       res.send(result);
+    app.get('/toys', async (req, res) => {
+      let query = {};
+      let sortOrder = {};
+      if (req.query?.email) {
+        query = { sellerEmail: req.query.email }
+      }
+      if (req.query?.category) {
+        query = { category: req.query.category }
+      }
+      if (req.query?.name) {
+        query = { name: { $regex: req.query.name, $options: "i" } }
+      }
+      if (req.query?.sortType) {
+        console.log(req.query.sortType)
+        if (req.query.sortType == 'low') {
+          sortOrder = {rating: 1 }
+        } else {
+          sortOrder = {rating: -1 }
+        }
+      }
+      const result = await toyCollection.find(query).sort(sortOrder).limit(20).toArray();
+      res.send(result);
     })
-    app.get("/toy/:id",async(req,res)=>{
-       const id = req.params.id;
-       const query = {_id: new ObjectId(id)};
-       const result = await toyCollection.findOne(query);
-       res.send(result); 
+    
+    app.get("/toy/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await toyCollection.findOne(query);
+      res.send(result);
     })
-    app.post('/add-toy',async(req,res)=>{
+    app.post('/add-toy', async (req, res) => {
       const newToy = req.body;
       const result = await toyCollection.insertOne(newToy);
       res.send(result);
     })
-    app.patch('/toy/:id',async(req,res)=>{
-       const id = req.params.id;
-       const filter = {_id: new ObjectId(id)};
-       const updatedToy = req.body;
-       const updatedDoc = {
-        $set:{
-            name          : updatedToy.name,
-            category      : updatedToy.category,
-            price         : updatedToy.price,
-            rating        : updatedToy.rating,
-            quantity      : updatedToy.quantity,
-            photoUrl      : updatedToy.photoUrl,
-            description   : updatedToy.description
+    app.patch('/toy/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedToy = req.body;
+      const updatedDoc = {
+        $set: {
+          name: updatedToy.name,
+          category: updatedToy.category,
+          price: updatedToy.price,
+          rating: updatedToy.rating,
+          quantity: updatedToy.quantity,
+          photoUrl: updatedToy.photoUrl,
+          description: updatedToy.description
         }
-       }
-       const result = await toyCollection.updateOne(filter,updatedDoc);
-       res.send(result);
+      }
+      const result = await toyCollection.updateOne(filter, updatedDoc);
+      res.send(result);
     })
-    app.delete('/toy/:id',async(req,res)=>{
-       const id = req.params.id;
-       const query = {_id : new ObjectId(id)};
-       const result = await toyCollection.deleteOne(query);
-       res.send(result);
+    app.delete('/toy/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await toyCollection.deleteOne(query);
+      res.send(result);
     })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-   // await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
 
-app.get('/',(req,res)=>{
-    res.send('Toy Server is Running');
+app.get('/', (req, res) => {
+  res.send('Toy Server is Running');
 })
-app.listen(port,()=>{
-    console.log("Toy server running on Port: ",port);
+app.listen(port, () => {
+  console.log("Toy server running on Port: ", port);
 })
